@@ -44,17 +44,20 @@ app.include_router(game.router, prefix="/api/game", tags=["游戏"])
 app.include_router(ai.router, prefix="/api/ai", tags=["AI管理"])
 app.include_router(onboarding.router, prefix="/api/onboarding", tags=["初始配置"])
 
+# 挂载静态文件（用于APK和图标）- 必须在路由之后
+import pathlib
+BASE_DIR = pathlib.Path(__file__).parent.parent
+app.mount("/static", StaticFiles(directory=str(BASE_DIR)), name="static")
+
 @app.get("/")
 async def root():
     # 返回下载页面
-    return FileResponse("../index.html")
+    index_path = BASE_DIR / "index.html"
+    return FileResponse(str(index_path))
 
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
-
-# 挂载静态文件（用于APK和图标）
-app.mount("/static", StaticFiles(directory=".."), name="static")
 
 if __name__ == "__main__":
     host = os.getenv("HOST", "0.0.0.0")
