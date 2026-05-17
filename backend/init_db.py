@@ -2,11 +2,15 @@
 数据库初始化脚本
 创建必要的索引，确保数据完整性和查询性能
 """
-from database import get_database
+from database import get_database, connect_to_mongo  # 导入连接函数
 import asyncio
 
 async def init_database():
     """初始化数据库索引"""
+    # 【核心修复】先执行异步连接！！！
+    await connect_to_mongo()
+    
+    # 连接完成后，再获取数据库实例
     db = get_database()
     
     print("开始初始化数据库索引...")
