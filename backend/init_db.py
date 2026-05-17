@@ -4,6 +4,13 @@
 """
 from database import get_database
 import asyncio
+from motor.motor_asyncio import AsyncIOMotorClient
+MONGO_URI = "mongodb://localhost:27017/"
+DB_NAME = "emotion_notes"  # 你的数据库名
+
+# 创建连接
+client = AsyncIOMotorClient(MONGO_URI)
+db = client[DB_NAME]
 
 async def init_database():
     """初始化数据库索引"""
