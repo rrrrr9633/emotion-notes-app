@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from contextlib import asynccontextmanager
 import uvicorn
 from dotenv import load_dotenv
@@ -44,15 +46,15 @@ app.include_router(onboarding.router, prefix="/api/onboarding", tags=["初始配
 
 @app.get("/")
 async def root():
-    return {
-        "message": "欢迎使用情绪便利贴API",
-        "version": "1.0.0",
-        "docs": "/docs"
-    }
+    # 返回下载页面
+    return FileResponse("../index.html")
 
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+
+# 挂载静态文件（用于APK和图标）
+app.mount("/static", StaticFiles(directory=".."), name="static")
 
 if __name__ == "__main__":
     host = os.getenv("HOST", "0.0.0.0")

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>情绪便利贴 - 下载</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+            padding: 40px;
+            text-align: center;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .app-icon {
+            width: 120px;
+            height: 120px;
+            border-radius: 24px;
+            margin: 0 auto 24px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            object-fit: cover;
+        }
+
+        h1 {
+            font-size: 32px;
+            color: #1a1a1a;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 32px;
+            line-height: 1.6;
+        }
+
+        .version-info {
+            background: #f5f5f7;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+
+        .version-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            font-size: 14px;
+        }
+
+        .version-label {
+            color: #666;
+        }
+
+        .version-value {
+            color: #1a1a1a;
+            font-weight: 600;
+        }
+
+        .download-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            padding: 16px 48px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            margin-bottom: 24px;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .download-btn:active {
+            transform: translateY(0);
+        }
+
+        .qr-code {
+            margin: 24px 0;
+            padding: 20px;
+            background: #f5f5f7;
+            border-radius: 12px;
+        }
+
+        .qr-code img {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto;
+            display: block;
+        }
+
+        .qr-hint {
+            font-size: 14px;
+            color: #666;
+            margin-top: 12px;
+        }
+
+        .features {
+            text-align: left;
+            margin-top: 32px;
+            padding-top: 32px;
+            border-top: 1px solid #e5e5e7;
+        }
+
+        .features h3 {
+            font-size: 18px;
+            color: #1a1a1a;
+            margin-bottom: 16px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .feature-icon {
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .footer {
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid #e5e5e7;
+            font-size: 12px;
+            color: #999;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 28px;
+            }
+
+            .app-icon {
+                width: 100px;
+                height: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="/static/emotion_notes_app/dbfde65f-a827-486a-ad8c-a36f96d2db11.png" alt="情绪便利贴" class="app-icon">
+        
+        <h1>情绪便利贴</h1>
+        <p class="subtitle">情侣情绪管理应用 - 记录每一个情绪瞬间</p>
+
+        <div class="version-info">
+            <div class="version-item">
+                <span class="version-label">版本号</span>
+                <span class="version-value">v1.0.0</span>
+            </div>
+            <div class="version-item">
+                <span class="version-label">文件大小</span>
+                <span class="version-value" id="file-size">计算中...</span>
+            </div>
+            <div class="version-item">
+                <span class="version-label">更新时间</span>
+                <span class="version-value" id="update-time">-</span>
+            </div>
+        </div>
+
+        <a href="/static/emotion_notes_app/build/app/outputs/flutter-apk/app-release.apk" class="download-btn" download="情绪便利贴_v1.0.0.apk">
+            📥 立即下载 APK
+        </a>
+
+        <div class="qr-code" style="display: none;">
+            <img src="qrcode.png" alt="扫码下载" id="qr-image">
+            <p class="qr-hint">使用手机扫描二维码下载</p>
+        </div>
+
+        <div class="features">
+            <h3>✨ 主要功能</h3>
+            <div class="feature-item">
+                <div class="feature-icon">✓</div>
+                <span>记录情绪便利贴，支持文字、图片、语音</span>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">✓</div>
+                <span>情侣共享，实时同步情绪状态</span>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">✓</div>
+                <span>AI情绪分析与建议</span>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">✓</div>
+                <span>情绪游戏互动，增进感情</span>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">✓</div>
+                <span>精美界面设计，流畅使用体验</span>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2026 情绪便利贴 | 仅支持 Android 系统</p>
+            <p style="margin-top: 8px;">安装前请确保允许安装未知来源应用</p>
+        </div>
+    </div>
+
+    <script>
+        // 更新时间
+        document.getElementById('update-time').textContent = new Date().toLocaleDateString('zh-CN');
+
+        // 尝试获取APK文件大小
+        fetch('/static/emotion_notes_app/build/app/outputs/flutter-apk/app-release.apk', { method: 'HEAD' })
+            .then(response => {
+                const size = response.headers.get('content-length');
+                if (size) {
+                    const sizeMB = (size / (1024 * 1024)).toFixed(2);
+                    document.getElementById('file-size').textContent = sizeMB + ' MB';
+                } else {
+                    document.getElementById('file-size').textContent = '约 20 MB';
+                }
+            })
+            .catch(() => {
+                document.getElementById('file-size').textContent = '约 20 MB';
+            });
+
+        // 下载统计
+        document.querySelector('.download-btn').addEventListener('click', function() {
+            console.log('APK下载开始');
+            // 这里可以添加下载统计逻辑
+        });
+    </script>
+</body>
+</html>
