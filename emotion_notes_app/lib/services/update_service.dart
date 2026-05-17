@@ -6,7 +6,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
 
 class UpdateService {
-  static const String versionUrl = 'http://your-server.com/version.json';
+  static const String versionUrl = 'http://103.233.255.72/version.json';
   
   final Dio _dio = Dio();
   
