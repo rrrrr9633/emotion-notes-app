@@ -1,0 +1,59 @@
+# Flutter/Dart build目录
+emotion_notes_app/build/
+emotion_notes_app/.dart_tool/
+emotion_notes_app/.flutter-plugins
+emotion_notes_app/.flutter-plugins-dependencies
+emotion_notes_app/.packages
+emotion_notes_app/pubspec.lock
+
+# Android build目录
+emotion_notes_app/android/app/build/
+emotion_notes_app/android/.gradle/
+emotion_notes_app/android/local.properties
+
+# iOS build目录
+emotion_notes_app/ios/Pods/
+emotion_notes_app/ios/.symlinks/
+emotion_notes_app/ios/Flutter/Flutter.framework
+emotion_notes_app/ios/Flutter/Flutter.podspec
+
+# Markdown文档（不提交，除了README.md）
+*.md
+!README.md
+!emotion_notes_app/README.md
+
+# Python缓存
+backend/__pycache__/
+backend/**/__pycache__/
+backend/*.pyc
+backend/.env
+backend/venv/
+backend/env/
+
+# 日志文件
+*.log
+nohup.out
+
+# 临时文件
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 上传的文件
+backend/uploads/
+
+# 数据库备份
+*.sql
+*.db
+
+# 脚本文件（不提交）
+*.sh
+*.bat
