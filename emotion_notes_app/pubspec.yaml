@@ -36,7 +36,7 @@ dependencies:
   audioplayers: ^5.2.1
   
   # 音频录制
-  record: ^5.2.1
+  record: ^5.0.5
   
   # 日期格式化
   intl: ^0.18.1
