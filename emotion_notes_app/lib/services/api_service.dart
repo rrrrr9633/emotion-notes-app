@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
 
 class ApiService {
-  // 生产环境服务器地址
-  static const String baseUrl = 'http://103.233.255.72:8000/api';
+  // 生产环境服务器地址（通过nginx代理，不需要端口号）
+  static const String baseUrl = 'http://103.233.255.72/api';
   
   final Dio _dio = Dio(
     BaseOptions(
