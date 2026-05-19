@@ -6,7 +6,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
 
 class UpdateService {
-  static const String versionUrl = 'http://103.233.255.72/version.json';
+  // 与主 API 同域，避免 Android 9+ 禁止明文 HTTP
+  static const String versionUrl = 'https://sjzwudi.top/version.json';
   
   final Dio _dio = Dio();
   

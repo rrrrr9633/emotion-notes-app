@@ -1,7 +1,9 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, UploadFile, File
 from pydantic import BaseModel
 from database import get_database
 from bson import ObjectId
+import os
+import uuid
 
 router = APIRouter()
 
@@ -70,6 +72,52 @@ async def update_user_profile(user_id: str, profile: UpdateProfileModel):
     except Exception as e:
         print(f"更新用户资料失败: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/upload-avatar/{user_id}")
+async def upload_avatar(user_id: str, avatar: UploadFile = File(...)):
+    """上传用户头像"""
+    db = get_database()
+
+    try:
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="用户不存在")
+
+        allowed = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
+        ext = os.path.splitext(avatar.filename or "")[1].lower()
+        if ext not in allowed:
+            ext = ".jpg"
+
+        upload_dir = "uploads/avatars"
+        os.makedirs(upload_dir, exist_ok=True)
+
+        unique_filename = f"{uuid.uuid4()}{ext}"
+        file_path = os.path.join(upload_dir, unique_filename)
+
+        content = await avatar.read()
+        if len(content) > 5 * 1024 * 1024:
+            raise HTTPException(status_code=400, detail="图片不能超过5MB")
+
+        with open(file_path, "wb") as f:
+            f.write(content)
+
+        avatar_url = f"/uploads/avatars/{unique_filename}"
+
+        await db.users.update_one(
+            {"_id": ObjectId(user_id)},
+            {"$set": {"avatar_url": avatar_url}},
+        )
+
+        return {
+            "success": True,
+            "avatar_url": avatar_url,
+            "message": "头像上传成功",
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"上传头像失败: {e}")
+        raise HTTPException(status_code=500, detail=f"上传失败: {str(e)}")
 
 @router.post("/bind-request")
 async def send_bind_request(request: BindRequestModel):
