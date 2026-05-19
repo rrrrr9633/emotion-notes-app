@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
+import '../services/music_service.dart';
 
 class GameProvider with ChangeNotifier {
   final SharedPreferences _prefs;
@@ -31,6 +32,10 @@ class GameProvider with ChangeNotifier {
     print('[GameProvider] 从本地加载游戏进度:');
     print('  - isGameCompleted: $_isGameCompleted');
     print('  - currentLevel: $_currentLevel');
+
+    if (_isGameCompleted) {
+      await MusicService().stop();
+    }
     
     notifyListeners();
   }
@@ -59,6 +64,10 @@ class GameProvider with ChangeNotifier {
         // 同步到本地缓存
         await _prefs.setBool('isGameCompleted', _isGameCompleted);
         await _prefs.setInt('currentLevel', _currentLevel);
+
+        if (_isGameCompleted) {
+          await MusicService().stop();
+        }
         
         notifyListeners();
       } else {
@@ -93,6 +102,11 @@ class GameProvider with ChangeNotifier {
     print('[GameProvider] 标记游戏完成');
     _isGameCompleted = true;
     _currentLevel = 4;
+    
+    // 停止音乐
+    final musicService = MusicService();
+    await musicService.stop();
+    print('[GameProvider] 音乐已停止');
     
     // 保存到本地
     await _prefs.setBool('isGameCompleted', true);

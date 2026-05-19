@@ -204,11 +204,6 @@ class _Level4ScreenState extends State<Level4Screen>
       
       if (result['success'] == true) {
         print('[Level4] 第四关数据保存成功');
-        
-        // 数据保存成功后，标记游戏完成
-        final gameProvider = Provider.of<GameProvider>(context, listen: false);
-        await gameProvider.completeGame();
-        print('[Level4] 游戏完成状态已更新');
       } else {
         print('[Level4] 第四关数据保存失败: ${result['message']}');
       }
@@ -324,18 +319,38 @@ class _Level4ScreenState extends State<Level4Screen>
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () async {
+                  onPressed: () {
+                    // 必须在任何 await 之前捕获 Navigator，否则异步后 context 会失效
+                    final navigator = Navigator.of(this.context);
+                    final gameProvider =
+                        Provider.of<GameProvider>(this.context, listen: false);
+                    final userId =
+                        Provider.of<AuthProvider>(this.context, listen: false).userId;
+                    final blessing = _blessing;
+
                     Navigator.of(context).pop();
-                    
-                    // 保存数据并标记游戏完成（异步，不等待）
-                    _saveLevel4Data(action, phrase, ritual, forgiveMessage);
-                    
-                    // 直接跳转到主界面
-                    if (mounted) {
-                      Navigator.of(context).pushNamedAndRemoveUntil(
-                        '/home',
-                        (route) => false,
-                      );
+
+                    // 立即跳转，不等待网络请求
+                    navigator.pushNamedAndRemoveUntil(
+                      '/home',
+                      (route) => false,
+                    );
+
+                    // 标记完成、停音乐、同步服务器（不依赖页面 context）
+                    gameProvider.completeGame();
+
+                    if (userId != null) {
+                      _apiService.saveLevel4Data(
+                        userId: userId,
+                        action: action,
+                        phrase: phrase,
+                        ritual: ritual,
+                        forgiveMessage: forgiveMessage,
+                        blessing: blessing,
+                      ).catchError((e) {
+                        print('[Level4] 后台保存第四关数据失败: $e');
+                        return <String, dynamic>{'success': false};
+                      });
                     }
                   },
                   style: ElevatedButton.styleFrom(
