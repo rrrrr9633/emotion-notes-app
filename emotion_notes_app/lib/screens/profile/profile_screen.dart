@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
 import '../../providers/auth_provider.dart';
 import '../../services/api_service.dart';
 import 'memories_screen.dart';
@@ -43,13 +42,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
       // 获取用户信息
       final userResult = await _apiService.getUserProfile(userId);
       if (userResult['success'] == true) {
-        _userInfo = userResult['user'];
+        _userInfo = _normalizeUserMediaUrls(userResult['user']);
         
         // 如果有伴侣，获取伴侣信息
         if (_userInfo!['partner_id'] != null) {
           final partnerResult = await _apiService.getUserProfile(_userInfo!['partner_id']);
           if (partnerResult['success'] == true) {
-            _partnerInfo = partnerResult['user'];
+            _partnerInfo = _normalizeUserMediaUrls(partnerResult['user']);
           }
           
           // 计算在一起的天数
@@ -76,6 +75,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
   
+  Map<String, dynamic> _normalizeUserMediaUrls(Map<String, dynamic> user) {
+    final normalized = Map<String, dynamic>.from(user);
+    final avatarUrl = normalized['avatar_url'] as String?;
+    if (avatarUrl != null) {
+      normalized['avatar_url'] = ApiService.resolveMediaUrl(avatarUrl);
+    }
+    return normalized;
+  }
+
   Future<void> _pickAndUploadAvatar() async {
     try {
       final XFile? image = await _picker.pickImage(
@@ -100,10 +108,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
       
       // 上传头像
-      final result = await _apiService.uploadAvatar(userId, File(image.path));
+      final result = await _apiService.uploadAvatar(
+        userId,
+        image.path,
+        filename: image.name,
+      );
       
       if (mounted) {
         if (result['success'] == true) {
+          setState(() {
+            _userInfo = {
+              ...?_userInfo,
+              'avatar_url': result['avatar_url'],
+            };
+          });
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('头像更新成功 💕')),
           );

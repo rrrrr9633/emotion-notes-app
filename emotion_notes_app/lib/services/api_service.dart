@@ -1,19 +1,65 @@
 import 'package:dio/dio.dart';
 
+/// 将 Dio 异常转为可读提示（APK 与 Chrome 网络栈不同，需区分证书/超时等）
+String networkErrorMessage(DioException e, {String? fallback}) {
+  final data = e.response?.data;
+  if (data is Map && data['message'] != null) {
+    return data['message'].toString();
+  }
+  switch (e.type) {
+    case DioExceptionType.connectionTimeout:
+    case DioExceptionType.sendTimeout:
+    case DioExceptionType.receiveTimeout:
+      return '连接超时，请确认手机网络能访问服务器';
+    case DioExceptionType.connectionError:
+      return '无法连接服务器：${e.message ?? "请检查网络与域名解析"}';
+    case DioExceptionType.badCertificate:
+      return 'HTTPS证书校验失败，请检查服务器SSL证书链是否配置完整';
+    case DioExceptionType.badResponse:
+      return fallback ?? '服务器错误 (${e.response?.statusCode})';
+    default:
+      return fallback ?? '网络错误: ${e.message}';
+  }
+}
+
 class ApiService {
   // 生产环境服务器地址（通过nginx代理，不需要端口号）
   static const String baseUrl = 'https://sjzwudi.top/api';
+  // 静态资源（头像、图片等）根地址
+  static const String mediaOrigin = 'https://sjzwudi.top';
+
+  /// 将后端返回的相对路径转为完整 URL，供 NetworkImage 使用
+  static String? resolveMediaUrl(String? url) {
+    if (url == null || url.isEmpty) return null;
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    final path = url.startsWith('/') ? url : '/$url';
+    return '$mediaOrigin$path';
+  }
   
   final Dio _dio = Dio(
     BaseOptions(
       baseUrl: baseUrl,
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 10),
+      connectTimeout: const Duration(seconds: 15),
+      receiveTimeout: const Duration(seconds: 15),
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'User-Agent': 'EmotionNotesApp/1.0',
       },
     ),
   );
+
+  ApiService() {
+    _dio.interceptors.add(
+      InterceptorsWrapper(
+        onError: (error, handler) {
+          print('[API] ${error.requestOptions.uri}');
+          print('[API] 错误类型: ${error.type}, 信息: ${error.message}');
+          handler.next(error);
+        },
+      ),
+    );
+  }
 
   // 注册
   Future<Map<String, dynamic>> register(String username, String password) async {
@@ -35,7 +81,7 @@ class ApiService {
       
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? '网络错误: ${e.message}',
+        'message': networkErrorMessage(e),
       };
     } catch (e) {
       print('未知错误: $e');
@@ -57,7 +103,7 @@ class ApiService {
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? '网络错误',
+        'message': networkErrorMessage(e),
       };
     }
   }
@@ -73,7 +119,7 @@ class ApiService {
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? '网络错误',
+        'message': networkErrorMessage(e),
       };
     }
   }
@@ -88,7 +134,7 @@ class ApiService {
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? '网络错误',
+        'message': networkErrorMessage(e),
       };
     }
   }
@@ -101,7 +147,7 @@ class ApiService {
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? '网络错误',
+        'message': networkErrorMessage(e),
       };
     }
   }
@@ -114,7 +160,7 @@ class ApiService {
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? '网络错误',
+        'message': networkErrorMessage(e),
       };
     }
   }
@@ -127,7 +173,7 @@ class ApiService {
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? '网络错误',
+        'message': networkErrorMessage(e),
       };
     }
   }
@@ -142,7 +188,7 @@ class ApiService {
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? '网络错误',
+        'message': networkErrorMessage(e),
       };
     }
   }
@@ -163,7 +209,7 @@ class ApiService {
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? '网络错误',
+        'message': networkErrorMessage(e),
       };
     }
   }
@@ -180,7 +226,7 @@ class ApiService {
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? '网络错误',
+        'message': networkErrorMessage(e),
       };
     }
   }
@@ -203,7 +249,7 @@ class ApiService {
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? '网络错误',
+        'message': networkErrorMessage(e),
       };
     }
   }
@@ -224,7 +270,7 @@ class ApiService {
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? '网络错误',
+        'message': networkErrorMessage(e),
       };
     }
   }
@@ -247,7 +293,7 @@ class ApiService {
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? '网络错误',
+        'message': networkErrorMessage(e),
       };
     }
   }
@@ -274,7 +320,7 @@ class ApiService {
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? '网络错误',
+        'message': networkErrorMessage(e),
       };
     }
   }
@@ -301,7 +347,7 @@ class ApiService {
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? '网络错误',
+        'message': networkErrorMessage(e),
       };
     }
   }
@@ -326,7 +372,7 @@ class ApiService {
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? '网络错误',
+        'message': networkErrorMessage(e),
       };
     }
   }
@@ -353,7 +399,7 @@ class ApiService {
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? '网络错误',
+        'message': networkErrorMessage(e),
       };
     }
   }
@@ -366,7 +412,7 @@ class ApiService {
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? '网络错误',
+        'message': networkErrorMessage(e),
       };
     }
   }
@@ -395,7 +441,7 @@ class ApiService {
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? '网络错误',
+        'message': networkErrorMessage(e),
       };
     }
   }
@@ -412,7 +458,7 @@ class ApiService {
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? '网络错误',
+        'message': networkErrorMessage(e),
       };
     }
   }
@@ -436,7 +482,7 @@ class ApiService {
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? '网络错误',
+        'message': networkErrorMessage(e),
       };
     }
   }
@@ -454,7 +500,7 @@ class ApiService {
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? '网络错误',
+        'message': networkErrorMessage(e),
       };
     }
   }
@@ -472,7 +518,7 @@ class ApiService {
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? '网络错误',
+        'message': networkErrorMessage(e),
       };
     }
   }
@@ -490,7 +536,7 @@ class ApiService {
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? '网络错误',
+        'message': networkErrorMessage(e),
       };
     }
   }
@@ -508,7 +554,7 @@ class ApiService {
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? '网络错误',
+        'message': networkErrorMessage(e),
       };
     }
   }
@@ -526,7 +572,7 @@ class ApiService {
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? '网络错误',
+        'message': networkErrorMessage(e),
       };
     }
   }
@@ -539,7 +585,7 @@ class ApiService {
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? '网络错误',
+        'message': networkErrorMessage(e),
       };
     }
   }
@@ -561,7 +607,7 @@ class ApiService {
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? '网络错误',
+        'message': networkErrorMessage(e),
       };
     }
   }
@@ -579,7 +625,7 @@ class ApiService {
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? '网络错误',
+        'message': networkErrorMessage(e),
       };
     }
   }
@@ -599,7 +645,7 @@ class ApiService {
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? '网络错误',
+        'message': networkErrorMessage(e),
       };
     }
   }
@@ -617,7 +663,7 @@ class ApiService {
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? '网络错误',
+        'message': networkErrorMessage(e),
       };
     }
   }
@@ -630,7 +676,7 @@ class ApiService {
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? '网络错误',
+        'message': networkErrorMessage(e),
       };
     }
   }
@@ -645,7 +691,7 @@ class ApiService {
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? '网络错误',
+        'message': networkErrorMessage(e),
       };
     }
   }
@@ -663,7 +709,7 @@ class ApiService {
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? '网络错误',
+        'message': networkErrorMessage(e),
       };
     }
   }
@@ -676,7 +722,7 @@ class ApiService {
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? '网络错误',
+        'message': networkErrorMessage(e),
       };
     }
   }
@@ -689,7 +735,7 @@ class ApiService {
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? '网络错误',
+        'message': networkErrorMessage(e),
       };
     }
   }
@@ -704,7 +750,7 @@ class ApiService {
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? '网络错误',
+        'message': networkErrorMessage(e),
       };
     }
   }
@@ -724,24 +770,39 @@ class ApiService {
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? '网络错误',
+        'message': networkErrorMessage(e),
       };
     }
   }
 
   // 上传头像
-  Future<Map<String, dynamic>> uploadAvatar(String userId, dynamic file) async {
+  Future<Map<String, dynamic>> uploadAvatar(
+    String userId,
+    String filePath, {
+    String? filename,
+  }) async {
     try {
       final formData = FormData.fromMap({
-        'avatar': await MultipartFile.fromFile(file.path),
+        'avatar': await MultipartFile.fromFile(
+          filePath,
+          filename: filename ?? filePath.split(RegExp(r'[/\\]')).last,
+        ),
       });
-      
-      final response = await _dio.post('/user/upload-avatar/$userId', data: formData);
-      return response.data;
+
+      final response = await _dio.post(
+        '/user/upload-avatar/$userId',
+        data: formData,
+      );
+      final data = response.data as Map<String, dynamic>;
+      if (data['success'] == true && data['avatar_url'] != null) {
+        data['avatar_url'] = resolveMediaUrl(data['avatar_url']);
+      }
+      return data;
     } on DioException catch (e) {
+      print('[API] 上传头像失败: ${e.type} ${e.message}');
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? '网络错误',
+        'message': networkErrorMessage(e),
       };
     }
   }
