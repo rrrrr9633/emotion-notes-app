@@ -11,6 +11,7 @@ class MusicService {
   bool _isPlaying = false;
   bool _isInitialized = false;
   bool _hasEverPlayed = false; // 新增：标记是否曾经播放过
+  bool _loopEnabled = true;
   
   Duration _duration = Duration.zero;
   Duration _position = Duration.zero;
@@ -44,8 +45,9 @@ class MusicService {
     _audioPlayer.onPlayerComplete.listen((_) {
       _isPlaying = false;
       _position = Duration.zero;
-      // 自动重新播放
-      play();
+      if (_loopEnabled) {
+        play();
+      }
     });
 
     _isInitialized = true;
@@ -65,6 +67,7 @@ class MusicService {
       }
 
       print('[MusicService] 开始播放音乐: $_musicPath');
+      _loopEnabled = true;
       await _audioPlayer.play(AssetSource(_musicPath));
       _isPlaying = true;
       _hasEverPlayed = true; // 标记已经播放过
@@ -124,6 +127,7 @@ class MusicService {
 
   /// 停止音乐
   Future<void> stop() async {
+    _loopEnabled = false;
     await _audioPlayer.stop();
     _isPlaying = false;
     _position = Duration.zero;

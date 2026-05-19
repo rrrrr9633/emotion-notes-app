@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/game_provider.dart';
+import '../services/music_service.dart';
 import 'game/game_screen.dart';
 import 'home/home_screen.dart';
 
@@ -54,6 +55,7 @@ class _WelcomeAnimationScreenState extends State<WelcomeAnimationScreen>
     if (gameProvider.isGameCompleted) {
       // 已完成闯关 -> 直接进入主界面
       print('游戏已完成，跳转到主界面');
+      await MusicService().stop();
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const HomeScreen()),
       );

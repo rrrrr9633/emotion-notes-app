@@ -204,11 +204,6 @@ class _Level4ScreenState extends State<Level4Screen>
       
       if (result['success'] == true) {
         print('[Level4] 第四关数据保存成功');
-        
-        // 数据保存成功后，标记游戏完成
-        final gameProvider = Provider.of<GameProvider>(context, listen: false);
-        await gameProvider.completeGame();
-        print('[Level4] 游戏完成状态已更新');
       } else {
         print('[Level4] 第四关数据保存失败: ${result['message']}');
       }
@@ -326,11 +321,19 @@ class _Level4ScreenState extends State<Level4Screen>
                 child: ElevatedButton(
                   onPressed: () async {
                     Navigator.of(context).pop();
-                    
-                    // 保存数据并标记游戏完成（异步，不等待）
-                    _saveLevel4Data(action, phrase, ritual, forgiveMessage);
-                    
-                    // 直接跳转到主界面
+
+                    final gameProvider =
+                        Provider.of<GameProvider>(context, listen: false);
+
+                    // 先保存第四关数据，再标记完成并停止音乐
+                    await _saveLevel4Data(
+                      action,
+                      phrase,
+                      ritual,
+                      forgiveMessage,
+                    );
+                    await gameProvider.completeGame();
+
                     if (mounted) {
                       Navigator.of(context).pushNamedAndRemoveUntil(
                         '/home',
