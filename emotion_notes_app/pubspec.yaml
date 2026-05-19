@@ -58,3 +58,7 @@ flutter:
     - assets/animations/
     - assets/models/
     - assets/music/
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  image_path: "icon.png"
