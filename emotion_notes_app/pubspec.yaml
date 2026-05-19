@@ -1,7 +1,7 @@
 name: emotion_notes_app
 description: 情绪便利贴 - 情侣情绪管理应用
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.0.1+2
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -43,6 +43,11 @@ dependencies:
   
   # 路径处理
   path_provider: ^2.1.2
+
+  # 应用更新
+  package_info_plus: ^8.0.0
+  permission_handler: ^11.3.0
+  open_filex: ^4.4.0
 
 dev_dependencies:
   flutter_test:

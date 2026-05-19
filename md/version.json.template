@@ -1,31 +1,7 @@
 {
-  "version": "1.0.1",
-  "buildNumber": 2,
-  "downloadUrl": "http://your-server-ip/downloads/app-release.apk",
-  "updateMessage": "🎉 新版本更新内容：\n\n✨ 新功能\n• 添加个人资料入口（主页菜单→个人资料）\n• 查看回忆功能优化（随时可查看对方游戏数据）\n• 宠物重生系统（100级后重生为蛋，可无限重生）\n\n🐛 问题修复\n• 修复留言功能网络错误\n• 修复语音录制插件加载问题\n• 优化宠物等级计算逻辑\n\n💡 使用提示\n• 语音录制需要完全重启应用\n• 个人资料可查看伴侣信息和在一起天数\n• 宠物每1000次消气重生一次",
-  "forceUpdate": false,
-  "minVersion": "1.0.0",
-  "releaseDate": "2024-01-15",
-  "changelog": [
-    {
-      "type": "feature",
-      "description": "添加个人资料入口"
-    },
-    {
-      "type": "feature",
-      "description": "查看回忆功能优化"
-    },
-    {
-      "type": "feature",
-      "description": "宠物重生系统"
-    },
-    {
-      "type": "fix",
-      "description": "修复留言功能网络错误"
-    },
-    {
-      "type": "fix",
-      "description": "修复语音录制问题"
-    }
-  ]
+  "version_code": 3,
+  "version_name": "1.0.2",
+  "download_url": "https://sjzwudi.top/static/emotion_notes_app/build/app/outputs/flutter-apk/app-release.apk",
+  "update_log": "• 更新说明条目1\n• 更新说明条目2",
+  "force_update": false
 }

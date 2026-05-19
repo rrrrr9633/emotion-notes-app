@@ -1,0 +1,7 @@
+{
+  "version_code": 2,
+  "version_name": "1.0.1",
+  "download_url": "https://sjzwudi.top/static/emotion_notes_app/build/app/outputs/flutter-apk/app-release.apk",
+  "update_log": "• 修复头像上传\n• 修复第四关完成跳转\n• 修复 APK 网络连接\n• 支持 App 内检查更新并安装",
+  "force_update": false
+}
