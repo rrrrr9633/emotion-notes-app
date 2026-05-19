@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/api_service.dart';
+import '../../services/update_service.dart';
 import '../auth/login_screen.dart';
 import '../profile/profile_screen.dart';
 import 'create_note_screen.dart';
@@ -26,6 +27,9 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _loadNotes();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      UpdateService().checkUpdate(context, silentIfLatest: true);
+    });
   }
 
   Future<void> _loadNotes() async {
@@ -158,6 +162,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     builder: (_) => const ProfileScreen(),
                   ),
                 );
+              } else if (value == 'update') {
+                UpdateService().checkUpdate(context, showNoUpdate: true);
               }
             },
             itemBuilder: (context) => [
@@ -178,6 +184,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     Icon(Icons.bar_chart, color: Colors.black, size: 20),
                     SizedBox(width: 12),
                     Text('情绪统计'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'update',
+                child: Row(
+                  children: [
+                    Icon(Icons.system_update, color: Colors.black, size: 20),
+                    SizedBox(width: 12),
+                    Text('检查更新'),
                   ],
                 ),
               ),
