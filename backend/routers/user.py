@@ -83,6 +83,17 @@ async def upload_avatar(user_id: str, avatar: UploadFile = File(...)):
         if not user:
             raise HTTPException(status_code=404, detail="用户不存在")
 
+        # 删除旧头像文件
+        old_avatar_url = user.get("avatar_url")
+        if old_avatar_url and old_avatar_url.startswith("/uploads/avatars/"):
+            old_file_path = old_avatar_url.lstrip("/")
+            if os.path.exists(old_file_path):
+                try:
+                    os.remove(old_file_path)
+                    print(f"已删除旧头像: {old_file_path}")
+                except Exception as e:
+                    print(f"删除旧头像失败: {e}")
+
         allowed = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
         ext = os.path.splitext(avatar.filename or "")[1].lower()
         if ext not in allowed:

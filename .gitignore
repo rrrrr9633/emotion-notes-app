@@ -1,3 +1,4 @@
+pubspec.lock
 # Markdown文档（不提交，除了README.md）
 *.md
 !README.md

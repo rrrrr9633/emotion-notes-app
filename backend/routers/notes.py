@@ -490,6 +490,7 @@ async def mark_note_resolved(note_id: str, user_id: str):
             {
                 "$set": {
                     "is_resolved": True,
+                    "status": "resolved",  # 修改status为resolved
                     "resolved_at": datetime.utcnow(),
                     "updated_at": datetime.utcnow()
                 }
