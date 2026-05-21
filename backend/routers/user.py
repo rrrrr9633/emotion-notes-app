@@ -218,14 +218,26 @@ async def accept_bind_request(request: AcceptBindModel):
     sender_id = str(sender["_id"])
     receiver_id = str(receiver["_id"])
     
-    # 更新双方的partner_id
+    # 记录在一起的日期
+    from datetime import datetime
+    together_since = datetime.utcnow().isoformat()
+    
+    # 更新双方的partner_id和在一起日期
     await db.users.update_one(
         {"_id": ObjectId(sender_id)},
-        {"$set": {"partner_id": receiver_id, "is_partner_bound": True}}
+        {"$set": {
+            "partner_id": receiver_id,
+            "is_partner_bound": True,
+            "together_since": together_since
+        }}
     )
     await db.users.update_one(
         {"_id": ObjectId(receiver_id)},
-        {"$set": {"partner_id": sender_id, "is_partner_bound": True}}
+        {"$set": {
+            "partner_id": sender_id,
+            "is_partner_bound": True,
+            "together_since": together_since
+        }}
     )
     
     # 更新请求状态

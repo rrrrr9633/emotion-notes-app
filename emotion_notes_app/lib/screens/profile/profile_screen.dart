@@ -52,7 +52,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           }
           
           // 计算在一起的天数
-          if (_userInfo!['relationship_start_date'] != null) {
+          if (_userInfo!['together_since'] != null) {
+            final startDate = DateTime.parse(_userInfo!['together_since']);
+            _daysTogeth = DateTime.now().difference(startDate).inDays;
+          } else if (_userInfo!['relationship_start_date'] != null) {
             final startDate = DateTime.parse(_userInfo!['relationship_start_date']);
             _daysTogeth = DateTime.now().difference(startDate).inDays;
           }
@@ -567,42 +570,59 @@ class _ProfileScreenState extends State<ProfileScreen> {
   
   Widget _buildTogetherCard() {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFFFB6C1), Color(0xFFFFE4E1)],
-        ),
-        borderRadius: BorderRadius.circular(20),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFFF6B9D).withOpacity(0.2),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
-            offset: const Offset(0, 5),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Column(
+      child: Row(
         children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF5F7),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.favorite,
+              color: Color(0xFFFF6B9D),
+              size: 28,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '在一起',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '$_daysTogeth 天',
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFFFF6B9D),
+                  ),
+                ),
+              ],
+            ),
+          ),
           const Text(
             '💕',
-            style: TextStyle(fontSize: 40),
-          ),
-          const SizedBox(height: 12),
-          const Text(
-            '我们在一起',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '$_daysTogeth 天',
-            style: const TextStyle(
-              fontSize: 48,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
+            style: TextStyle(fontSize: 32),
           ),
         ],
       ),
