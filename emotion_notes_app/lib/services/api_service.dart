@@ -40,7 +40,7 @@ class ApiService {
     BaseOptions(
       baseUrl: baseUrl,
       connectTimeout: const Duration(seconds: 15),
-      receiveTimeout: const Duration(seconds: 15),
+      receiveTimeout: const Duration(seconds: 60), // 延长到60秒,适配AI生成
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',

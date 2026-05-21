@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:audioplayers/audioplayers.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/api_service.dart';
 
@@ -16,11 +17,15 @@ class NoteDetailScreen extends StatefulWidget {
 class _NoteDetailScreenState extends State<NoteDetailScreen> {
   final ApiService _apiService = ApiService();
   final TextEditingController _commentController = TextEditingController();
+  final AudioPlayer _audioPlayer = AudioPlayer();
   Map<String, dynamic>? _note;
   List<Map<String, dynamic>> _comments = [];
   bool _isLoading = true;
   bool _isResolving = false;
   bool _isAddingComment = false;
+  bool _isPlayingAudio = false;
+  Duration _audioDuration = Duration.zero;
+  Duration _audioPosition = Duration.zero;
 
   final Map<String, Color> _emotionColors = {
     '生气': const Color(0xFFFF6B6B),
@@ -34,11 +39,39 @@ class _NoteDetailScreenState extends State<NoteDetailScreen> {
   void initState() {
     super.initState();
     _loadNoteDetail();
+    
+    // 监听音频播放状态
+    _audioPlayer.onPlayerStateChanged.listen((state) {
+      if (mounted) {
+        setState(() {
+          _isPlayingAudio = state == PlayerState.playing;
+        });
+      }
+    });
+    
+    // 监听音频时长
+    _audioPlayer.onDurationChanged.listen((duration) {
+      if (mounted) {
+        setState(() {
+          _audioDuration = duration;
+        });
+      }
+    });
+    
+    // 监听播放进度
+    _audioPlayer.onPositionChanged.listen((position) {
+      if (mounted) {
+        setState(() {
+          _audioPosition = position;
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
     _commentController.dispose();
+    _audioPlayer.dispose();
     super.dispose();
   }
 
@@ -342,6 +375,38 @@ class _NoteDetailScreenState extends State<NoteDetailScreen> {
     }
   }
 
+  Future<void> _toggleAudioPlayback() async {
+    if (_note == null || _note!['audio_url'] == null) return;
+
+    try {
+      if (_isPlayingAudio) {
+        await _audioPlayer.pause();
+      } else {
+        final audioUrl = ApiService.resolveMediaUrl(_note!['audio_url']);
+        if (audioUrl != null) {
+          await _audioPlayer.play(UrlSource(audioUrl));
+        }
+      }
+    } catch (e) {
+      print('播放音频失败: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('播放失败: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  String _formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final minutes = twoDigits(duration.inMinutes.remainder(60));
+    final seconds = twoDigits(duration.inSeconds.remainder(60));
+    return '$minutes:$seconds';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -484,6 +549,79 @@ class _NoteDetailScreenState extends State<NoteDetailScreen> {
               ),
             ),
           ),
+
+          // 音频播放器
+          if (note['audio_url'] != null) ...[
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.shade300),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: _toggleAudioPlayback,
+                    icon: Icon(
+                      _isPlayingAudio ? Icons.pause_circle_filled : Icons.play_circle_filled,
+                      size: 40,
+                      color: const Color(0xFFFF6B9D),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        LinearProgressIndicator(
+                          value: _audioDuration.inMilliseconds > 0
+                              ? _audioPosition.inMilliseconds / _audioDuration.inMilliseconds
+                              : 0,
+                          backgroundColor: Colors.grey.shade200,
+                          valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFFF6B9D)),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              _formatDuration(_audioPosition),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                            Text(
+                              _formatDuration(_audioDuration),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Icon(
+                    Icons.mic,
+                    color: Color(0xFFFF6B9D),
+                    size: 20,
+                  ),
+                ],
+              ),
+            ),
+          ],
 
           const SizedBox(height: 32),
 

@@ -27,7 +27,7 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
   String? _audioPath;
   String? _audioUrl;
   
-  final List<String> _emotions = ['生气', '难过', '委屈', '失望', '焦虑'];
+  final List<String> _emotions = ['生气', '难过', '委屈', '失望', '焦虑', '开心', '疲惫', '平淡', '幸福'];
   
   final Map<String, Color> _emotionColors = {
     '生气': const Color(0xFFFF6B6B),
@@ -35,6 +35,10 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
     '委屈': const Color(0xFFFFE66D),
     '失望': const Color(0xFF95E1D3),
     '焦虑': const Color(0xFFFFA07A),
+    '开心': const Color(0xFFFFD93D),
+    '疲惫': const Color(0xFFB8B8D1),
+    '平淡': const Color(0xFFE8E8E8),
+    '幸福': const Color(0xFFFFB6C1),
   };
 
   @override

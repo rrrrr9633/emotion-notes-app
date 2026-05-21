@@ -768,14 +768,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ],
           
           _buildSettingItem(
-            icon: Icons.system_update,
-            label: '检查更新',
-            onTap: () {
-              // TODO: 调用更新服务
-            },
-          ),
-          const Divider(height: 24),
-          _buildSettingItem(
             icon: Icons.logout,
             label: '退出登录',
             onTap: () async {

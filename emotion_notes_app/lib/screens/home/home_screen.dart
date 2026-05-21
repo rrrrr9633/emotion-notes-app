@@ -9,6 +9,7 @@ import '../profile/profile_screen.dart';
 import 'create_note_screen.dart';
 import 'note_detail_screen.dart';
 import 'statistics_screen.dart';
+import 'trash_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -52,12 +53,16 @@ class _HomeScreenState extends State<HomeScreen> {
         userId: userId,
         year: _selectedDate.year,
         month: _selectedDate.month,
-        status: 'active',
+        status: 'active', // 只显示未消气的
       );
 
       if (result['success'] == true && mounted) {
+        // 过滤掉已消气的便利贴
+        final allNotes = List<Map<String, dynamic>>.from(result['notes'] ?? []);
+        final activeNotes = allNotes.where((note) => note['is_resolved'] != true).toList();
+        
         setState(() {
-          _notes = List<Map<String, dynamic>>.from(result['notes'] ?? []);
+          _notes = activeNotes;
           _isLoading = false;
         });
       } else {
@@ -218,9 +223,24 @@ class _HomeScreenState extends State<HomeScreen> {
               letterSpacing: 1,
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.black),
-            onPressed: _loadNotes,
+          Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.delete_outline, color: Colors.black),
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const TrashScreen(),
+                    ),
+                  );
+                },
+                tooltip: '垃圾桶',
+              ),
+              IconButton(
+                icon: const Icon(Icons.refresh, color: Colors.black),
+                onPressed: _loadNotes,
+              ),
+            ],
           ),
         ],
       ),
