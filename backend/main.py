@@ -9,7 +9,7 @@ import os
 from pathlib import Path
 
 from database import connect_to_mongo, close_mongo_connection
-from routers import auth, user, notes, game, ai, onboarding
+from routers import auth, user, notes, game, ai, onboarding, admin
 
 # 无论从哪个目录启动 uvicorn，都从 backend 目录加载 .env
 _BACKEND_DIR = Path(__file__).resolve().parent
@@ -46,6 +46,7 @@ app.include_router(notes.router, prefix="/api/notes", tags=["便利贴"])
 app.include_router(game.router, prefix="/api/game", tags=["游戏"])
 app.include_router(ai.router, prefix="/api/ai", tags=["AI管理"])
 app.include_router(onboarding.router, prefix="/api/onboarding", tags=["初始配置"])
+app.include_router(admin.router, prefix="/api/admin", tags=["管理后台"])
 
 # 挂载静态文件（用于APK和图标）- 必须在路由之后
 import pathlib

@@ -3,13 +3,25 @@ from models import UserCreate, UserLogin
 from database import get_database
 from auth_utils import get_password_hash, verify_password, create_access_token
 from bson import ObjectId
+import re
 
 router = APIRouter()
+
+def contains_chinese(text: str) -> bool:
+    """检查字符串是否包含中文字符"""
+    return bool(re.search(r'[\u4e00-\u9fff]', text))
 
 @router.post("/register")
 async def register(user: UserCreate):
     """用户注册"""
     db = get_database()
+    
+    # 检查用户名是否包含中文
+    if contains_chinese(user.username):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="用户名不能使用中文"
+        )
     
     # 检查用户名是否已存在
     existing_user = await db.users.find_one({"username": user.username})
