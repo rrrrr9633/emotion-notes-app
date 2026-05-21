@@ -55,13 +55,13 @@ async def test_level1_blessing():
         print("\n生成中...")
         
         try:
-            blessing = await ai_service.generate_level1_blessing(
+            blessing, ai_generated = await ai_service.generate_level1_blessing(
                 smell=test_data['smell'],
                 first_words=test_data['first_words'],
                 metaphor=test_data['metaphor']
             )
             
-            print(f"\n💕 AURA的祝福：")
+            print(f"\n💕 AURA的祝福（AI生成={ai_generated}）：")
             print("-" * 60)
             print(blessing)
             print("-" * 60)

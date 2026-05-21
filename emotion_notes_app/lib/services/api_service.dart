@@ -193,6 +193,12 @@ class ApiService {
     }
   }
 
+  /// DeepSeek 生成较慢，祝福接口单独延长接收超时
+  static final Options _aiBlessingOptions = Options(
+    receiveTimeout: const Duration(seconds: 60),
+    sendTimeout: const Duration(seconds: 30),
+  );
+
   // 获取第一关AI祝福
   Future<Map<String, dynamic>> getLevel1Blessing({
     required String smell,
@@ -200,11 +206,15 @@ class ApiService {
     required String metaphor,
   }) async {
     try {
-      final response = await _dio.post('/game/level1/blessing', data: {
-        'smell': smell,
-        'first_words': firstWords,
-        'metaphor': metaphor,
-      });
+      final response = await _dio.post(
+        '/game/level1/blessing',
+        data: {
+          'smell': smell,
+          'first_words': firstWords,
+          'metaphor': metaphor,
+        },
+        options: _aiBlessingOptions,
+      );
       return response.data;
     } on DioException catch (e) {
       return {
@@ -239,12 +249,16 @@ class ApiService {
     required String photoUrl,
   }) async {
     try {
-      final response = await _dio.post('/game/level2/blessing', data: {
-        'color': color,
-        'dialogue': dialogue,
-        'song': song,
-        'photo_url': photoUrl,
-      });
+      final response = await _dio.post(
+        '/game/level2/blessing',
+        data: {
+          'color': color,
+          'dialogue': dialogue,
+          'song': song,
+          'photo_url': photoUrl,
+        },
+        options: _aiBlessingOptions,
+      );
       return response.data;
     } on DioException catch (e) {
       return {
@@ -261,11 +275,15 @@ class ApiService {
     required String node3,
   }) async {
     try {
-      final response = await _dio.post('/game/level3/blessing', data: {
-        'node1': node1,
-        'node2': node2,
-        'node3': node3,
-      });
+      final response = await _dio.post(
+        '/game/level3/blessing',
+        data: {
+          'node1': node1,
+          'node2': node2,
+          'node3': node3,
+        },
+        options: _aiBlessingOptions,
+      );
       return response.data;
     } on DioException catch (e) {
       return {
@@ -283,12 +301,16 @@ class ApiService {
     required String forgiveMessage,
   }) async {
     try {
-      final response = await _dio.post('/game/level4/blessing', data: {
-        'action': action,
-        'phrase': phrase,
-        'ritual': ritual,
-        'forgive_message': forgiveMessage,
-      });
+      final response = await _dio.post(
+        '/game/level4/blessing',
+        data: {
+          'action': action,
+          'phrase': phrase,
+          'ritual': ritual,
+          'forgive_message': forgiveMessage,
+        },
+        options: _aiBlessingOptions,
+      );
       return response.data;
     } on DioException catch (e) {
       return {
@@ -428,14 +450,16 @@ class ApiService {
     String? audioUrl,
   }) async {
     try {
-      final response = await _dio.post('/notes/create',
+      final response = await _dio.post(
+        '/notes/create',
         queryParameters: {'user_id': userId},
         data: {
           'content': content,
           'emotion_tag': emotionTag,
           if (title != null) 'title': title,
           if (audioUrl != null) 'audio_url': audioUrl,
-        }
+        },
+        options: _aiBlessingOptions,
       );
       return response.data;
     } on DioException catch (e) {

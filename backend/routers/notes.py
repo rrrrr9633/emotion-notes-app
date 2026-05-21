@@ -26,7 +26,7 @@ async def create_note(note_data: NoteCreate, user_id: str):
             raise HTTPException(status_code=404, detail="用户不存在")
         
         # 生成AI暖心回复
-        ai_reply = await ai_service.generate_note_reply(
+        ai_reply, ai_generated = await ai_service.generate_note_reply(
             content=note_data.content,
             emotion_tag=note_data.emotion_tag
         )
@@ -52,6 +52,7 @@ async def create_note(note_data: NoteCreate, user_id: str):
         return {
             "success": True,
             "note": new_note,
+            "ai_generated": ai_generated,
             "message": "便利贴创建成功"
         }
     except HTTPException:

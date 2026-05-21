@@ -84,7 +84,7 @@ async def get_level1_blessing(data: Level1Data):
     """
     try:
         # 调用AI服务生成祝福
-        blessing = await ai_service.generate_level1_blessing(
+        blessing, ai_generated = await ai_service.generate_level1_blessing(
             smell=data.smell,
             first_words=data.first_words,
             metaphor=data.metaphor
@@ -93,6 +93,7 @@ async def get_level1_blessing(data: Level1Data):
         return {
             "success": True,
             "blessing": blessing,
+            "ai_generated": ai_generated,
             "ai_name": "AURA"
         }
                 
@@ -140,7 +141,7 @@ async def get_level2_blessing(data: Level2Data):
     """获取第二关AI祝福"""
     try:
         # 调用AI服务生成祝福
-        blessing = await ai_service.generate_level2_blessing(
+        blessing, ai_generated = await ai_service.generate_level2_blessing(
             color=data.color,
             dialogue=data.dialogue,
             song=data.song
@@ -152,6 +153,7 @@ async def get_level2_blessing(data: Level2Data):
         return {
             "success": True,
             "blessing": blessing,
+            "ai_generated": ai_generated,
             "description": description,
             "ai_name": "AURA"
         }
@@ -169,7 +171,7 @@ async def get_level3_blessing(data: dict):
     """获取第三关AI祝福"""
     try:
         # 调用AI服务生成祝福
-        blessing = await ai_service.generate_level3_blessing(
+        blessing, ai_generated = await ai_service.generate_level3_blessing(
             node1=data.get('node1', ''),
             node2=data.get('node2', ''),
             node3=data.get('node3', '')
@@ -178,6 +180,7 @@ async def get_level3_blessing(data: dict):
         return {
             "success": True,
             "blessing": blessing,
+            "ai_generated": ai_generated,
             "ai_name": "AURA"
         }
     except Exception as e:
@@ -193,7 +196,7 @@ async def get_level4_blessing(data: dict):
     """获取第四关AI祝福"""
     try:
         # 调用AI服务生成祝福
-        blessing = await ai_service.generate_level4_blessing(
+        blessing, ai_generated = await ai_service.generate_level4_blessing(
             action=data.get('action', ''),
             phrase=data.get('phrase', ''),
             ritual=data.get('ritual', ''),
@@ -203,6 +206,7 @@ async def get_level4_blessing(data: dict):
         return {
             "success": True,
             "blessing": blessing,
+            "ai_generated": ai_generated,
             "ai_name": "AURA"
         }
     except Exception as e:

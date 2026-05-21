@@ -138,32 +138,30 @@ class _Level4ScreenState extends State<Level4Screen>
 
       print('[Level4] 开始生成祝福...');
       
-      // 先设置默认祝福，避免等待
-      _blessing = '蓝色是深海的颜色——表面有风浪，但深处始终安静。你们提前写下的这些，就是彼此的锚。';
-      
-      // 尝试调用API生成祝福（带超时）
       try {
         final result = await _apiService.getLevel4Blessing(
           action: action,
           phrase: phrase,
           ritual: ritual,
           forgiveMessage: forgiveMessage,
-        ).timeout(
-          const Duration(seconds: 5),
-          onTimeout: () {
-            print('[Level4] API调用超时，使用默认祝福');
-            return {'success': false, 'message': '超时'};
-          },
         );
-        
+
         if (result['success'] == true && result['blessing'] != null) {
           _blessing = result['blessing'];
-          print('[Level4] 成功获取AI祝福');
+          if (result['ai_generated'] == false) {
+            print('[Level4] 后端未调用到 DeepSeek，返回的是预设祝福');
+          } else {
+            print('[Level4] 成功获取 AI 祝福');
+          }
         } else {
-          print('[Level4] API返回失败，使用默认祝福');
+          print('[Level4] API 请求失败: ${result['message']}');
+          _blessing =
+              '蓝色是深海的颜色——表面有风浪，但深处始终安静。你们提前写下的这些，就是彼此的锚。';
         }
       } catch (e) {
-        print('[Level4] 获取祝福异常: $e，使用默认祝福');
+        print('[Level4] 获取祝福异常: $e');
+        _blessing =
+            '蓝色是深海的颜色——表面有风浪，但深处始终安静。你们提前写下的这些，就是彼此的锚。';
       }
       
       if (mounted) {

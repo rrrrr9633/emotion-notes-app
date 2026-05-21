@@ -2,34 +2,94 @@
 AI服务模块 - 使用DeepSeek API生成暖心回复
 """
 import os
-from typing import Optional
+from pathlib import Path
+from typing import Optional, Tuple
 import httpx
 from dotenv import load_dotenv
 
-load_dotenv()
+_BACKEND_DIR = Path(__file__).resolve().parent
+load_dotenv(_BACKEND_DIR / ".env")
+
 
 class AIService:
     def __init__(self):
-        # DeepSeek API配置
-        self.api_key = os.getenv("DEEPSEEK_API_KEY", "")
-        self.api_base = os.getenv("DEEPSEEK_API_BASE", "https://api.deepseek.com/v1")
+        # DeepSeek API配置（从 backend/.env 读取，不依赖启动目录）
+        self.api_key = os.getenv("DEEPSEEK_API_KEY", "").strip()
+        self.api_base = os.getenv(
+            "DEEPSEEK_API_BASE", "https://api.deepseek.com/v1"
+        ).rstrip("/")
         self.model = os.getenv("DEEPSEEK_MODEL", "deepseek-chat")
-        
-        # 调试信息
+
         if self.api_key:
-            print(f"[AI Service] API Key已加载: {self.api_key[:10]}...{self.api_key[-4:]}")
+            print(
+                f"[AI Service] API Key已加载: {self.api_key[:10]}...{self.api_key[-4:]}"
+            )
         else:
-            print("[AI Service] ⚠️  警告: 未找到DEEPSEEK_API_KEY环境变量")
-        
-        # AI性格配置文件路径
-        self.personality_file = "ai_personality.txt"
+            print(
+                "[AI Service] ⚠️ 未找到 DEEPSEEK_API_KEY，"
+                f"请检查 {_BACKEND_DIR / '.env'}"
+            )
+
+        self.personality_file = _BACKEND_DIR / "ai_personality.txt"
         self.system_prompt = self._load_personality()
+
+    def is_configured(self) -> bool:
+        return bool(self.api_key)
+
+    async def _request_chat(
+        self,
+        system_prompt: str,
+        user_message: str,
+        fallback: str,
+        *,
+        temperature: float = 0.8,
+        max_tokens: int = 500,
+    ) -> Tuple[str, bool]:
+        """调用 DeepSeek；返回 (文案, 是否来自真实 AI)"""
+        if not self.api_key:
+            print("[AI] 未配置 DEEPSEEK_API_KEY，使用预设文案")
+            return fallback, False
+
+        try:
+            async with httpx.AsyncClient(timeout=45.0) as client:
+                response = await client.post(
+                    f"{self.api_base}/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {self.api_key}",
+                        "Content-Type": "application/json",
+                    },
+                    json={
+                        "model": self.model,
+                        "messages": [
+                            {"role": "system", "content": system_prompt},
+                            {"role": "user", "content": user_message},
+                        ],
+                        "temperature": temperature,
+                        "max_tokens": max_tokens,
+                    },
+                )
+
+            if response.status_code == 200:
+                result = response.json()
+                content = result["choices"][0]["message"]["content"].strip()
+                print("[AI] ✅ DeepSeek 调用成功")
+                return content, True
+
+            print(
+                f"[AI] ❌ DeepSeek 错误 HTTP {response.status_code}: "
+                f"{response.text[:300]}"
+            )
+            return fallback, False
+
+        except Exception as e:
+            print(f"[AI] ❌ 请求异常: {type(e).__name__}: {e}")
+            return fallback, False
     
     def _load_personality(self) -> str:
         """加载AI性格配置"""
         try:
-            if os.path.exists(self.personality_file):
-                with open(self.personality_file, 'r', encoding='utf-8') as f:
+            if self.personality_file.exists():
+                with open(self.personality_file, "r", encoding="utf-8") as f:
                     return f.read().strip()
             else:
                 # 默认性格
@@ -75,53 +135,19 @@ class AIService:
             AI生成的暖心回复
         """
         
-        # 如果没有配置API Key，返回默认回复
-        if not self.api_key:
-            return self._get_fallback_reply(emotion_tag)
-        
-        try:
-            # 构建用户消息
-            user_message = f"情绪：{emotion_tag}\n"
-            if title:
-                user_message += f"标题：{title}\n"
-            user_message += f"内容：{content}"
-            
-            # 调用DeepSeek API
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                response = await client.post(
-                    f"{self.api_base}/chat/completions",
-                    headers={
-                        "Authorization": f"Bearer {self.api_key}",
-                        "Content-Type": "application/json"
-                    },
-                    json={
-                        "model": self.model,
-                        "messages": [
-                            {
-                                "role": "system",
-                                "content": self.system_prompt
-                            },
-                            {
-                                "role": "user",
-                                "content": user_message
-                            }
-                        ],
-                        "temperature": 0.8,
-                        "max_tokens": 500
-                    }
-                )
-                
-                if response.status_code == 200:
-                    result = response.json()
-                    reply = result['choices'][0]['message']['content']
-                    return reply.strip()
-                else:
-                    print(f"DeepSeek API错误: {response.status_code} - {response.text}")
-                    return self._get_fallback_reply(emotion_tag)
-                    
-        except Exception as e:
-            print(f"AI生成回复失败: {e}")
-            return self._get_fallback_reply(emotion_tag)
+        user_message = f"情绪：{emotion_tag}\n"
+        if title:
+            user_message += f"标题：{title}\n"
+        user_message += f"内容：{content}"
+
+        reply, _ = await self._request_chat(
+            self.system_prompt,
+            user_message,
+            self._get_fallback_reply(emotion_tag),
+            temperature=0.8,
+            max_tokens=500,
+        )
+        return reply
     
     def _get_fallback_reply(self, emotion_tag: str) -> str:
         """备用回复（当API不可用时）"""
@@ -171,8 +197,8 @@ class AIService:
         self,
         smell: str,
         first_words: str,
-        metaphor: str
-    ) -> str:
+        metaphor: str,
+    ) -> Tuple[str, bool]:
         """
         为第一关"相遇"生成AI祝福
         AI名字: AURA (Affectionate Understanding & Romantic Assistant)
@@ -213,60 +239,22 @@ class AIService:
 
 请给他们一段温暖的祝福 💕"""
 
-        # 如果没有配置API Key，返回默认祝福
-        if not self.api_key:
-            print("[AURA] 未配置API Key，使用默认祝福")
-            return f"亲爱的，你们的相遇就像{metaphor}，充满了命运的巧合与美好。那句'{first_words}'，是你们爱情故事的第一个音符。愿你们的每一天都像初见时那样心动，每一刻都值得珍藏。💕✨"
-        
-        try:
-            print(f"[AURA] 正在调用DeepSeek API生成祝福...")
-            print(f"[AURA] API Base: {self.api_base}")
-            print(f"[AURA] Model: {self.model}")
-            
-            # 调用DeepSeek API
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                response = await client.post(
-                    f"{self.api_base}/chat/completions",
-                    headers={
-                        "Authorization": f"Bearer {self.api_key}",
-                        "Content-Type": "application/json"
-                    },
-                    json={
-                        "model": self.model,
-                        "messages": [
-                            {
-                                "role": "system",
-                                "content": aura_personality
-                            },
-                            {
-                                "role": "user",
-                                "content": user_message
-                            }
-                        ],
-                        "temperature": 0.9,
-                        "max_tokens": 300
-                    }
-                )
-                
-                print(f"[AURA] API响应状态码: {response.status_code}")
-                
-                if response.status_code == 200:
-                    result = response.json()
-                    blessing = result['choices'][0]['message']['content']
-                    print(f"[AURA] ✅ 成功生成祝福")
-                    return blessing.strip()
-                else:
-                    print(f"[AURA] ❌ API错误: {response.status_code}")
-                    print(f"[AURA] 错误详情: {response.text}")
-                    return f"亲爱的，你们的相遇就像{metaphor}，充满了命运的巧合与美好。那句'{first_words}'，是你们爱情故事的第一个音符。愿你们的每一天都像初见时那样心动，每一刻都值得珍藏。💕✨"
-                    
-        except Exception as e:
-            print(f"[AURA] ❌ 生成祝福失败: {type(e).__name__}: {str(e)}")
-            import traceback
-            traceback.print_exc()
-            return f"亲爱的，你们的相遇充满了美好与浪漫。愿你们的爱情像初雪一样纯净，像星光一样永恒。每一个瞬间都值得珍藏，每一份感动都值得铭记。💕✨"
+        fallback = (
+            f"亲爱的，你们的相遇就像{metaphor}，充满了命运的巧合与美好。"
+            f"那句'{first_words}'，是你们爱情故事的第一个音符。"
+            f"愿你们的每一天都像初见时那样心动，每一刻都值得珍藏。💕✨"
+        )
+        return await self._request_chat(
+            aura_personality,
+            user_message,
+            fallback,
+            temperature=0.9,
+            max_tokens=300,
+        )
 
-    async def generate_level2_blessing(self, color: str, dialogue: str, song: str) -> str:
+    async def generate_level2_blessing(
+        self, color: str, dialogue: str, song: str
+    ) -> Tuple[str, bool]:
         """为第二关"初见"生成AI祝福"""
         aura_personality = """你是AURA，一个温柔浪漫的AI小天使💕
 根据情侣第二关"初见"的回答，生成一段诗意的祝福。
@@ -279,35 +267,21 @@ class AIService:
 
 请给他们一段温暖的祝福 💕"""
 
-        if not self.api_key:
-            return f"照片会褪色，但那天你说话的语气不会。那天你穿着{color}，说\"{dialogue}\"，《{song}》正好在循环。这些细节，我们已经把它保存在这里了。💕"
-        
-        try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                response = await client.post(
-                    f"{self.api_base}/chat/completions",
-                    headers={"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"},
-                    json={
-                        "model": self.model,
-                        "messages": [
-                            {"role": "system", "content": aura_personality},
-                            {"role": "user", "content": user_message}
-                        ],
-                        "temperature": 0.9,
-                        "max_tokens": 300
-                    }
-                )
-                
-                if response.status_code == 200:
-                    result = response.json()
-                    return result['choices'][0]['message']['content'].strip()
-                else:
-                    return f"照片会褪色，但那天你说话的语气不会。那天你穿着{color}，说\"{dialogue}\"，《{song}》正好在循环。这些细节，我们已经把它保存在这里了。💕"
-        except Exception as e:
-            print(f"[AURA] 生成第二关祝福失败: {e}")
-            return f"照片会褪色，但那天你说话的语气不会。那天你穿着{color}，说\"{dialogue}\"，《{song}》正好在循环。这些细节，我们已经把它保存在这里了。💕"
+        fallback = (
+            f"照片会褪色，但那天你说话的语气不会。那天你穿着{color}，"
+            f"说\"{dialogue}\"，《{song}》正好在循环。这些细节，我们已经把它保存在这里了。💕"
+        )
+        return await self._request_chat(
+            aura_personality,
+            user_message,
+            fallback,
+            temperature=0.9,
+            max_tokens=300,
+        )
 
-    async def generate_level3_blessing(self, node1: str, node2: str, node3: str) -> str:
+    async def generate_level3_blessing(
+        self, node1: str, node2: str, node3: str
+    ) -> Tuple[str, bool]:
         """为第三关"期许"生成AI祝福"""
         aura_personality = """你是AURA，一个温柔浪漫的AI小天使💕
 根据情侣第三关"期许"的回答（三个未来节点），生成一段鼓励的祝福。
@@ -320,35 +294,21 @@ class AIService:
 
 请给他们一段温暖的祝福 💕"""
 
-        if not self.api_key:
-            return f"未来不需要很宏大，有具体的画面就够了。你看，你已经画好了三张草图：{node1}、{node2}、{node3}。一步一步走，就能到达。💕"
-        
-        try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                response = await client.post(
-                    f"{self.api_base}/chat/completions",
-                    headers={"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"},
-                    json={
-                        "model": self.model,
-                        "messages": [
-                            {"role": "system", "content": aura_personality},
-                            {"role": "user", "content": user_message}
-                        ],
-                        "temperature": 0.9,
-                        "max_tokens": 300
-                    }
-                )
-                
-                if response.status_code == 200:
-                    result = response.json()
-                    return result['choices'][0]['message']['content'].strip()
-                else:
-                    return f"未来不需要很宏大，有具体的画面就够了。你看，你已经画好了三张草图：{node1}、{node2}、{node3}。一步一步走，就能到达。💕"
-        except Exception as e:
-            print(f"[AURA] 生成第三关祝福失败: {e}")
-            return f"未来不需要很宏大，有具体的画面就够了。你看，你已经画好了三张草图：{node1}、{node2}、{node3}。一步一步走，就能到达。💕"
+        fallback = (
+            f"未来不需要很宏大，有具体的画面就够了。你看，你已经画好了三张草图："
+            f"{node1}、{node2}、{node3}。一步一步走，就能到达。💕"
+        )
+        return await self._request_chat(
+            aura_personality,
+            user_message,
+            fallback,
+            temperature=0.9,
+            max_tokens=300,
+        )
 
-    async def generate_level4_blessing(self, action: str, phrase: str, ritual: str, forgive_message: str) -> str:
+    async def generate_level4_blessing(
+        self, action: str, phrase: str, ritual: str, forgive_message: str
+    ) -> Tuple[str, bool]:
         """为第四关"相爱总会有阴天"生成AI祝福"""
         aura_personality = """你是AURA，一个温柔浪漫的AI小天使💕
 根据情侣第四关"吵架使用说明书"的回答，生成一段深情的祝福。
@@ -362,35 +322,19 @@ class AIService:
 
 请给他们一段温暖的祝福 💕"""
 
-        if not self.api_key:
-            return "蓝色是深海的颜色——表面有风浪，但深处始终安静。你们提前写下的这些，就是彼此的锚。💙"
-        
-        try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                response = await client.post(
-                    f"{self.api_base}/chat/completions",
-                    headers={"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"},
-                    json={
-                        "model": self.model,
-                        "messages": [
-                            {"role": "system", "content": aura_personality},
-                            {"role": "user", "content": user_message}
-                        ],
-                        "temperature": 0.9,
-                        "max_tokens": 300
-                    }
-                )
-                
-                if response.status_code == 200:
-                    result = response.json()
-                    return result['choices'][0]['message']['content'].strip()
-                else:
-                    return "蓝色是深海的颜色——表面有风浪，但深处始终安静。你们提前写下的这些，就是彼此的锚。💙"
-        except Exception as e:
-            print(f"[AURA] 生成第四关祝福失败: {e}")
-            return "蓝色是深海的颜色——表面有风浪，但深处始终安静。你们提前写下的这些，就是彼此的锚。💙"
+        fallback = (
+            "蓝色是深海的颜色——表面有风浪，但深处始终安静。"
+            "你们提前写下的这些，就是彼此的锚。💙"
+        )
+        return await self._request_chat(
+            aura_personality,
+            user_message,
+            fallback,
+            temperature=0.9,
+            max_tokens=300,
+        )
 
-    async def generate_note_reply(self, content: str, emotion_tag: str) -> str:
+    async def generate_note_reply(self, content: str, emotion_tag: str) -> Tuple[str, bool]:
         """
         为便利贴生成暖心回复
         根据情绪标签和内容生成个性化的安慰
@@ -426,62 +370,18 @@ class AIService:
 - 可以用emoji增加温暖感"""
 
             user_prompt = f"用户的烦恼：{content}"
-            
-            # 如果没有配置API Key，返回默认回复
-            if not self.api_key:
-                print("[便利贴AI] ❌ 未配置API Key，使用默认回复")
-                return self._get_fallback_reply(emotion_tag)
-            
-            print(f"[便利贴AI] 正在调用DeepSeek API...")
-            print(f"[便利贴AI] API Base: {self.api_base}")
-            print(f"[便利贴AI] Model: {self.model}")
-            
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                response = await client.post(
-                    f"{self.api_base}/chat/completions",
-                    headers={
-                        "Authorization": f"Bearer {self.api_key}",
-                        "Content-Type": "application/json"
-                    },
-                    json={
-                        "model": self.model,
-                        "messages": [
-                            {"role": "system", "content": system_prompt},
-                            {"role": "user", "content": user_prompt}
-                        ],
-                        "temperature": 0.8,
-                        "max_tokens": 200
-                    }
-                )
-                
-                print(f"[便利贴AI] API响应状态码: {response.status_code}")
-                
-                if response.status_code == 200:
-                    result = response.json()
-                    reply = result['choices'][0]['message']['content']
-                    print(f"[便利贴AI] ✅ 成功生成回复: {reply[:50]}...")
-                    return reply.strip()
-                else:
-                    print(f"[便利贴AI] ❌ API错误: {response.status_code}")
-                    print(f"[便利贴AI] 错误详情: {response.text}")
-                    return self._get_fallback_reply(emotion_tag)
-            
-        except Exception as e:
-            print(f"[便利贴AI] ❌ 生成回复失败: {type(e).__name__}: {str(e)}")
-            import traceback
-            traceback.print_exc()
-            return self._get_fallback_reply(emotion_tag)
 
-    def _get_fallback_reply(self, emotion_tag: str) -> str:
-        """备用回复（当API不可用时）"""
-        fallback_replies = {
-            "生气": "我懂你的感受，生气是正常的。深呼吸，我们一起冷静下来。💕",
-            "难过": "看到你难过，我也心疼。这只是暂时的，我会一直陪着你。🌟",
-            "委屈": "你受委屈了，我理解。在我面前不用假装坚强，我永远站在你这边。❤️",
-            "失望": "失望的感觉很难受。但这不是结束，让我陪你一起度过。💫",
-            "焦虑": "我感受到了你的焦虑。深呼吸，一步一步来，我会在你身边支持你。🌈"
-        }
-        return fallback_replies.get(emotion_tag, "我理解你的心情，让我们一起面对。💕")
+            return await self._request_chat(
+                system_prompt,
+                user_prompt,
+                self._get_fallback_reply(emotion_tag),
+                temperature=0.8,
+                max_tokens=200,
+            )
+
+        except Exception as e:
+            print(f"[便利贴AI] ❌ 生成回复失败: {type(e).__name__}: {e}")
+            return self._get_fallback_reply(emotion_tag), False
 
 
 # 全局AI服务实例

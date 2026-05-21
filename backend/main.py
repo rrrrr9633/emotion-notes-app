@@ -6,11 +6,14 @@ from contextlib import asynccontextmanager
 import uvicorn
 from dotenv import load_dotenv
 import os
+from pathlib import Path
 
 from database import connect_to_mongo, close_mongo_connection
 from routers import auth, user, notes, game, ai, onboarding
 
-load_dotenv()
+# 无论从哪个目录启动 uvicorn，都从 backend 目录加载 .env
+_BACKEND_DIR = Path(__file__).resolve().parent
+load_dotenv(_BACKEND_DIR / ".env")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
